@@ -1,0 +1,686 @@
+
+  <header>
+    <div id="header_div">
+      <ul>
+        <li><a href="/top">ホーム</a></li>
+        <li><a href="/mypage/">マイページ</a></li>
+        <li><a href="/logout">ログアウト</a></li>
+      </ul>
+      <img id="logo_img" src="/logo/logo.jpg">
+      <form action="/serch" method="get">
+        <input id="serch_text" type="text" name="key" placeholder="   キーワード検索">
+        <input id="serch_sub" type="submit" value="検索">
+      </form>
+    </div>
+  </header>
+
+  <main>
+
+    <div id = "mypage_top">
+
+      <% if @hantei == "同じ" %>
+        <form action="/edit_img_back" enctype="multipart/form-data" method="post">
+          <input type="hidden" name="from_url" value="<%= request.path %>">
+          <label><input type="file" onchange="this.form.submit()" accept="image/*" name="go_img_back" style="display: none;"><img id="mypage_back_img" src="/user_back/<%= @want_user_id %>_back.jpg" style="cursor: pointer;"></label>
+        </form>
+      <% else %>
+        <img id="mypage_back_img" src="/user_back/<%= @want_user_id %>_back.jpg">
+      <% end %>
+
+    </div>
+
+    <% if @animated_is == "nya" %>
+      <div id="my_icon">
+    <% else %>
+      <div id = "my_icon" class = "animated fadeIn">
+    <% end %>
+
+
+      <% if @hantei == "同じ" %>
+      <form action="/edit_img_icon" enctype="multipart/form-data" method="post">
+        <input type="hidden" name="from_url" value="<%= request.path %>">
+        <label><input type="file" onchange="this.form.submit()" accept="image/*" name="go_img_icon" style="display: none;"><div><img src="/user_icon/<%= @want_user_id %>_icon.jpg" style="cursor: pointer;"></div></label>
+      </form>
+      <% else %>
+        <div>
+          <img src="/user_icon/<%= @want_user_id %>_icon.jpg">
+        </div>
+      <% end %>
+
+
+    </div>
+
+    <div id = "mypage_top_status">
+      <div>
+        <div class="status_con">
+          <h1>ツイート</h1>
+          <p style="color: rgb(37, 165, 221);"><%= @count_tweet %></p>
+        </div>
+
+        <div class="status_con">
+          <h1>フォロー</h1>
+          <p style="color: rgb(37, 165, 221);"><%= @count_follow %></p>
+        </div>
+
+        <div class="status_con">
+          <h1>フォロワー</h1>
+          <p style="color: rgb(37, 165, 221);"><%= @count_follower %></p>
+        </div>
+
+        <div class="status_con">
+          <h1>いいね</h1>
+          <p style="color: rgb(37, 165, 221);"><%= @count_iine %></p>
+        </div>
+
+        <div id = "mypage_follow_status">
+          <% if @mypage_follow_is == 1 %>
+            <form action="/foll_system" method="post">
+              <input type="hidden" name="from_url" value="<%= request.path %>">
+              <input type="hidden" name="now_follow_id" value="<%= @want_user_id %>">
+              <input class="follow_on" type="submit" value="フォロー中" name="delete_follow">
+            </form>
+          <% elsif @mypage_follow_is == 0 %>
+            <form action="/foll_system" method="post">
+              <input type="hidden" name="from_url" value="<%= request.path %>">
+              <input type="hidden" name="now_unfollower_id" value="<%= @want_user_id %>">
+              <input class="follow_off" type="submit" value="フォローする" name="add_follow">
+            </form>
+          <% end %>
+        </div>
+
+      </div>
+
+    </div>
+
+    <% if @animated_is == "nya" %>
+      <div id="my_info">
+    <% else %>
+      <div id="my_info" class = "animated fadeInUp">
+    <% end %>
+
+      <div class="waku">
+        <h1><%= @want_user_name %></h1>
+        <p>User番号：&nbsp;<%= @want_user_id %></p>
+
+        <p id = 'account_comment'><%= @my_comment %></p>
+
+        <% if @hantei == "同じ" %>
+          <input type="text" id="go_comment">
+          <input type="button" id="profile_ajax" value="プロフィール変更">
+
+          <!-- ↓ js、rb、js 経由で戻ってくる。 -->
+          <div id="result"></div>
+        <% end %>
+
+      </div>
+    </div>
+
+    <% if @animated_is == "nya" %>
+      <div id="my_followers">
+    <% else %>
+      <div id="my_followers" class = "animated fadeInUp">
+    <% end %>
+
+      <div class = "waku">
+        <h1>フォロワー</h1>
+
+        <% @res_follower.each do |follower| %>
+          <% client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "root", :database => "GraduationWork")
+          sql = "select * from foll where who = #{@my_user_id};"
+          sta = client.prepare(sql)
+          @temp_res = sta.execute()
+          @follow_is = 0
+          @temp_res.each do |row|
+            if row['send'] == follower['id']
+              @follow_is = 1
+            end
+          end
+          if follower['id'] != @my_user_id %>
+
+            <div class = "hito">
+              <a href="/mypage/<%= follower['id'] %>"><img src="/user_icon/<%= follower['id'] %>_icon.jpg"></a>
+              <a href="/mypage/<%= follower['id'] %>"><p class="name"><%= follower['user_name'] %></p></a>
+              <% if @follow_is == 0 %>
+                <form action="/foll_system" method="post">
+                  <input type="hidden" name="from_url" value="<%= request.path %>">
+                  <input type="hidden" name="now_unfollower_id" value="<%= follower['id'] %>">
+                  <input class="follow_off" type="submit" value="フォローする" name="add_follow">
+                </form>
+              <% else %>
+              <form action="/foll_system" method="post">
+                <input type="hidden" name="from_url" value="<%= request.path %>">
+                <input type="hidden" name="now_follow_id" value="<%= follower['id'] %>">
+                <input class="follow_on" type="submit" value="フォロー中" name="delete_follow">
+              </form>
+              <% end %>
+            </div>
+
+          <% end %>
+        <% end %>
+
+      </div>
+
+      <div style="height: 100px; background-color: rgb(231, 236, 240); border-top: 20px solid white; margin-bottom: -20px;"></div>
+
+    </div>
+
+    <!-- どのルーティングを通ったかで、アニメーションをオンオフしてる。 -->
+    <% if @animated_is == "nya" %>
+      <div id="my_view_res">
+    <% else %>
+      <div id="my_view_res" class = "animated fadeIn">
+    <% end %>
+
+
+      <div class="res_top">
+        <h1><%= @page_res_title %>&nbsp;の投稿</h1>
+        <!-- <h1><%= @want_user_name %>さんの投稿</h1> -->
+      </div>
+
+      <div class="waku">
+
+        <%
+        client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "root", :database => "GraduationWork")
+        @temp_user_name == "hogeUser" %>
+
+        <% @res.each do |row|
+
+          # リツートかどうか。
+          if row['re_sou_id'].nil?
+            # 以降、リツイートでない場合。 ===========================
+
+
+
+            # その投稿の 総リツート数 を取得
+            sta = client.prepare("select count(re_sou_id or null) from tweets where re_sou_id = #{row['id']};")
+            sta.execute().each do |retw_count|
+              @retw_count = retw_count['count(re_sou_id or null)']
+            end
+
+            # ログインユーザーが、そのツイートを「いいね」しているのかどうか。
+            @iine_status = false
+            sta = client.prepare("select * from iine where who = #{@my_user_id} and twe_id = #{row['id']};")
+            sta.execute().each do
+              @iine_status = true
+            end
+
+            # ログインユーザーが、そのツイートを「リツイート」しているのかどうか。
+            @retw_status = false
+            sta = client.prepare("select * from tweets where creater_id = #{@my_user_id} and re_sou_id = #{row['id']};")
+            sta.execute().each do
+              @retw_status = true
+            end
+
+            # その ツイート の 「総 いいね 数」 を取得
+            sta = client.prepare("select count(twe_id or null) from iine where twe_id = #{row['id']};")
+            sta.execute().each do |iine_count|
+              @iine_count = iine_count['count(twe_id or null)']
+            end
+
+
+            # ツイートの投稿日時に関して
+            if row['dateinfo'].nil?
+            else
+              if row['dateinfo'] > Time.now - 60
+                # 1分 以内
+                @time_status = "#{(Time.now - row['dateinfo']).floor}秒前"
+              elsif row['dateinfo'] > Time.now - (60*60)
+                # 1時間 以内
+                @time_status = "#{((Time.now - row['dateinfo'])/(60)).floor}分前"
+              elsif row['dateinfo'] > Time.now - (24*60*60)
+                # 24時間 以内
+                @time_status = "#{((Time.now - row['dateinfo'])/(60*60)).floor}時間前"
+              elsif row['dateinfo'] > Time.now - (30*24*60*60)
+                # 1月 以内
+                @time_status = "#{((Time.now - row['dateinfo'])/(24*60*60)).floor}日前"
+              elsif row['dateinfo'] > Time.now - (365*24*60*60)
+                # 1年 以内
+                @time_status = "#{((Time.now - row['dateinfo'])/(30*24*60*60)).floor}ヶ月前"
+              else
+                # 1年 以上
+                @time_status = "#{((Time.now - row['dateinfo'])/(365*24*60*60)).floor}年前"
+              end
+            end
+
+            # そのツイート投稿者の情報を取得
+            creater_id = row['creater_id']
+            sql = "select * from users where id = '#{creater_id}';"
+            sta = client.prepare(sql)
+            @res_res = sta.execute()
+            @res_res.each do |row_row|
+              @temp_user_name = row_row['user_name']
+            end
+
+            if @res_num.nil?
+              @res_num = 1
+            else
+              @res_num += 1
+            end
+
+            %>
+
+
+            <div class="res" id = "res_num_<%= @res_num %>">
+
+              <div style = "margin-left: 0px;">
+
+                <a href="/mypage/<%= row['creater_id'] %>">
+                  <img class="icon_img" src="/user_icon/<%= row['creater_id'] %>_icon.jpg">
+                </a>
+                <a href="/mypage/<%= row['creater_id'] %>">
+                  <p class="name"><%= @temp_user_name %></p>
+                </a>
+                <p class="time"><%= @time_status %></p>
+
+                <div class="res_main">
+
+                  <p><%= row['msg'] %></p>
+
+                  <% if row['img_name'].nil?
+                  else %>
+                    <img class="up_img" src="/imgs/<%= row['img_name'] %>.jpg">
+                  <% end %>
+
+                  <%
+                  # 自分が 画像 をもっているのか、次に教える。
+                  if @pre_img_is.nil?
+                    @pre_img_is = false
+                  end
+
+                  # 自分が画像もってるか。
+                  @my_img_is = false
+                  if row['img_name'].nil?
+                  else
+                    @my_img_is = true
+                  end
+                  %>
+
+                  <div class = "res_info">
+
+                    <% if @retw_status %>
+
+                      <label class="retw_on"><i class="fas fa-retweet"></i></label>
+
+                    <% else %>
+
+                      <form action="/retw_system" method="post">
+                        <input type="hidden" name="res_num" value="<%= @res_num %>">
+                        <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                        <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                        <input type="hidden" name="from_url" value="<%= request.path %>">
+                        <input type="hidden" name="twe_id" value="<%= row['id'] %>">
+                        <input type="hidden" name="retw_on">
+                        <label class="retw_off"><input type="submit" style="display: none;"><i class="fas fa-retweet"></i></label>
+                      </form>
+
+                    <% end %>
+                    <p class="icon_retw">
+                      <%= @retw_count %>
+                    </p>
+
+
+                    <% if @iine_status %>
+
+                      <form action="/iine_system" method="post" style="margin-left: 52px; margin-top: -38px;">
+                        <input type="hidden" name="res_num" value="<%= @res_num %>">
+                        <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                        <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                        <input type="hidden" name="from_url" value="<%= request.path %>">
+                        <input type="hidden" name="iine_off">
+                        <input type="hidden" name="twe_id" value="<%= row['id'] %>">
+                        <label class="iine_on"><input type="submit" style="display: none;"><i class="fas fa-heart"></i></label>
+                      </form>
+
+                    <% else %>
+
+                      <form action="/iine_system" method="post" style="margin-left: 52px; margin-top: -38px;">
+                        <input type="hidden" name="res_num" value="<%= @res_num %>">
+                        <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                        <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                        <input type="hidden" name="from_url" value="<%= request.path %>">
+                        <input type="hidden" name="twe_id" value="<%= row['id'] %>">
+                        <input type="hidden" name="iine_on">
+                        <label class="iine_off"><input type="submit" style="display: none;"><i class="far fa-heart"></i></label>
+                      </form>
+
+                    <% end %>
+                    <p class="icon_iine">
+                      <%= @iine_count %>
+                    </p>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <%
+            # 自分が 画像 をもっているのか、次に教える。
+            if row['img_name'].nil?
+              @pre_img_is = false
+            else
+              @pre_img_is = true
+            end
+            %>
+
+
+
+
+
+            <% else
+            # 以降、リツイートである 場合 ===========================
+
+
+              # 元の ツイート を読み込む
+              sta = client.prepare("select * from tweets where id = #{row['re_sou_id']};")
+              sta.execute().each do |retw_row| %>
+
+
+                <% # 実は、リツート元が、リツートだった??? ========
+                if retw_row['re_sou_id'].nil?
+
+                  # 以降、リツート元が、リツートでない場合 ===========
+                  %>
+
+                  <%
+                  # その投稿の 総リツート数 を取得
+                  sta = client.prepare("select count(re_sou_id or null) from tweets where re_sou_id = #{row['re_sou_id']};")
+                  sta.execute().each do |retw_count|
+                    @retw_count = retw_count['count(re_sou_id or null)']
+                  end
+
+                  # ログインユーザーが、そのツイートを「いいね」しているのかどうか。
+                  @iine_status = false
+                  sta = client.prepare("select * from iine where who = #{@my_user_id} and twe_id = #{retw_row['id']};")
+                  sta.execute().each do
+                    @iine_status = true
+                  end
+
+                  # ログインユーザーが、そのツイートを「リツイート」しているのかどうか。
+                  @retw_status = false
+                  sta = client.prepare("select * from tweets where creater_id = #{@my_user_id} and re_sou_id = #{retw_row['id']};")
+                  sta.execute().each do
+                    @retw_status = true
+                  end
+
+                  # その ツイート の 「総 いいね 数」 を取得
+                  sta = client.prepare("select count(twe_id or null) from iine where twe_id = #{retw_row['id']};")
+                  sta.execute().each do |iine_count|
+                    @iine_count = iine_count['count(twe_id or null)']
+                  end
+
+                  # ツイートの投稿日時に関して
+                  if retw_row['dateinfo'].nil?
+                  else
+                    if retw_row['dateinfo'] > Time.now - 60
+                      # 1分 以内
+                      @time_status = "#{(Time.now - retw_row['dateinfo']).floor}秒前"
+                    elsif retw_row['dateinfo'] > Time.now - (60*60)
+                      # 1時間 以内
+                      @time_status = "#{((Time.now - retw_row['dateinfo'])/(60)).floor}分前"
+                    elsif retw_row['dateinfo'] > Time.now - (24*60*60)
+                      # 24時間 以内
+                      @time_status = "#{((Time.now - retw_row['dateinfo'])/(60*60)).floor}時間前"
+                    elsif retw_row['dateinfo'] > Time.now - (30*24*60*60)
+                      # 1月 以内
+                      @time_status = "#{((Time.now - retw_row['dateinfo'])/(24*60*60)).floor}日前"
+                    elsif retw_row['dateinfo'] > Time.now - (365*24*60*60)
+                      # 1年 以内
+                      @time_status = "#{((Time.now - retw_row['dateinfo'])/(30*24*60*60)).floor}ヶ月前"
+                    else
+                      # 1年 以上
+                      @time_status = "#{((Time.now - retw_row['dateinfo'])/(365*24*60*60)).floor}年前"
+                    end
+                  end
+
+                  # リツイート投稿 自体の 日時に関して
+                  if row['dateinfo'].nil?
+                  else
+                    if row['dateinfo'] > Time.now - 60
+                      # 1分 以内
+                      @re_time_status = "#{(Time.now - row['dateinfo']).floor}秒前"
+                    elsif row['dateinfo'] > Time.now - (60*60)
+                      # 1時間 以内
+                      @re_time_status = "#{((Time.now - row['dateinfo'])/(60)).floor}分前"
+                    elsif row['dateinfo'] > Time.now - (24*60*60)
+                      # 24時間 以内
+                      @re_time_status = "#{((Time.now - row['dateinfo'])/(60*60)).floor}時間前"
+                    elsif row['dateinfo'] > Time.now - (30*24*60*60)
+                      # 1月 以内
+                      @re_time_status = "#{((Time.now - row['dateinfo'])/(24*60*60)).floor}日前"
+                    elsif row['dateinfo'] > Time.now - (365*24*60*60)
+                      # 1年 以内
+                      @re_time_status = "#{((Time.now - row['dateinfo'])/(30*24*60*60)).floor}ヶ月前"
+                    else
+                      # 1年 以上
+                      @re_time_status = "#{((Time.now - row['dateinfo'])/(365*24*60*60)).floor}年前"
+                    end
+                  end
+
+                  # そのツイート投稿者の情報を取得
+                  creater_id = retw_row['creater_id']
+                  sql = "select * from users where id = '#{creater_id}';"
+                  sta = client.prepare(sql)
+                  @res_res = sta.execute()
+                  @res_res.each do |row_row|
+                    @temp_user_name = row_row['user_name']
+                  end
+
+                  # それを リツイート した人の名前を取得
+                  creater_id = row['creater_id']
+                  sql = "select * from users where id = '#{creater_id}';"
+                  sta = client.prepare(sql)
+                  @res_res = sta.execute()
+                  @res_res.each do |row_row|
+                    @temp_retw_user_name = row_row['user_name']
+                  end
+
+                  if @res_num.nil?
+                    @res_num = 1
+                  else
+                    @res_num += 1
+                  end
+
+                  %>
+
+
+                  <div class="res" id = "res_num_<%= @res_num %>">
+
+                    <div class="retw_top">
+                      <a href="/mypage/<%= row['creater_id'] %>">
+                        <img class="retw_icon_img" src="/user_icon/<%= row['creater_id'] %>_icon.jpg">
+                      </a>
+                      <a href="/mypage/<%= row['creater_id'] %>">
+                        <p class="retw_name">
+                          <i class="fas fa-retweet"></i>
+                          <span style="color: rgb(237, 144, 37);"><%= @temp_retw_user_name %></span>&nbsp;さんがリツイート
+                        </p>
+                      </a>
+                      <p class="retw_time"><%= @re_time_status %></p>
+                    </div>
+
+                    <div style = "margin-left: 0px;">
+
+
+
+                      <a href="/mypage/<%= retw_row['creater_id'] %>">
+                        <img class="icon_img" src="/user_icon/<%= retw_row['creater_id'] %>_icon.jpg">
+                      </a>
+                      <a href="/mypage/<%= retw_row['creater_id'] %>">
+                        <p class="name"><%= @temp_user_name %></p>
+                      </a>
+                      <p class="time"><%= @time_status %></p>
+
+
+                      <div class="res_main">
+
+                        <p><%= retw_row['msg'] %></p>
+
+                        <% if retw_row['img_name'].nil?
+                        else %>
+                          <img class="up_img" src="/imgs/<%= retw_row['img_name'] %>.jpg">
+                        <% end %>
+
+                        <div class = "res_info">
+
+
+                          <% if @retw_status %>
+
+                            <label class="retw_on"><i class="fas fa-retweet"></i></label>
+
+                          <% else %>
+
+                            <form action="retw_system" method="post">
+                              <input type="hidden" name="res_num" value="<%= @res_num %>">
+                              <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                              <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                              <input type="hidden" name="from_url" value="<%= request.path %>">
+                              <input type="hidden" name="twe_id" value="<%= row['id'] %>">
+                              <input type="hidden" name="retw_on">
+                              <label class="retw_off"><input type="submit" style="display: none;"><i class="fas fa-retweet"></i></label>
+                            </form>
+
+                          <% end %>
+                          <p class="icon_retw">
+                            <%= @retw_count %>
+                          </p>
+
+
+
+                          <% if @iine_status %>
+
+                            <form action="/iine_system" method="post" style="margin-left: 52px; margin-top: -38px;">
+                              <input type="hidden" name="res_num" value="<%= @res_num %>">
+                              <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                              <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                              <input type="hidden" name="from_url" value="<%= request.path %>">
+                              <input type="hidden" name="iine_off">
+                              <input type="hidden" name="twe_id" value="<%= retw_row['id'] %>">
+                              <label class="iine_on"><input type="submit" style="display: none;"><i class="fas fa-heart"></i></label>
+                            </form>
+
+                          <% else %>
+
+                            <form action="/iine_system" method="post" style="margin-left: 52px; margin-top: -38px;">
+                              <input type="hidden" name="res_num" value="<%= @res_num %>">
+                              <input type="hidden" name="pre_img_is" value="<%= @pre_img_is %>">
+                              <input type="hidden" name="my_img_is" value="<%= @my_img_is %>">
+                              <input type="hidden" name="from_url" value="<%= request.path %>">
+                              <input type="hidden" name="twe_id" value="<%= retw_row['id'] %>">
+                              <input type="hidden" name="iine_on">
+                              <label class="iine_off"><input type="submit" style="display: none;"><i class="far fa-heart"></i></label>
+                            </form>
+
+                          <% end %>
+                          <p class="icon_iine">
+                            <%= @iine_count %>
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <%
+                  # 自分が 画像 をもっているのか、次に教える。
+                  if retw_row['img_name'].nil?
+                    @pre_img_is = false
+                  else
+                    @pre_img_is = true
+                  end %>
+
+                <% # ここまでが、リツート元が、リツートでない投稿。
+                else %>
+
+                  <%
+                  # 以降、リツート元が、リツートである！！！！場合 ===========
+                  # 本当は、for文で回す必要がある。だが、今は時間がなくて、やばいので、許して。
+                  # のちに、治す！！！
+
+                  # 元の 元の ツイート を読み込む
+                  sta = client.prepare("select * from tweets where id = #{retw_row['re_sou_id']};")
+                  sta.execute().each do |re_retw_row| %>
+
+
+
+
+                    <% #よし！！！ 時間ない！ リツート元が、リツートの投稿は、読み込まないようにしよう！！ %>
+
+
+
+
+
+
+
+                  <% end # リツート元のリツート元 を読み込んでいた。 %>
+
+                <% end # リツート元がリツートかどうかで、内容を変えるif文のend %>
+
+              <% end # リツート元 を読み込んでいた。 %>
+
+            <% end #リツートかどうかで内容を変えるif文のend %>
+
+          <% end #ツイートの@resのeach文 ここまで %>
+
+      </div>
+
+      <div style="height: 200px; background-color: rgb(231, 236, 240); border-top: 20px solid white;"></div>
+
+    </div>
+
+    <% if @animated_is == "nya" %>
+      <div id="my_follow">
+    <% else %>
+      <div id="my_follow" class = "animated fadeInUp">
+    <% end %>
+
+      <div class="waku">
+        <h1>フォロー</h1>
+
+        <% @res_follow.each do |follow| %>
+          <% client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "root", :database => "GraduationWork")
+          sql = "select * from foll where who = #{@my_user_id};"
+          sta = client.prepare(sql)
+          @temp_res = sta.execute()
+          @follow_is = 0
+          @temp_res.each do |row|
+            if row['send'] == follow['id']
+              @follow_is = 1
+            end
+          end
+          if follow['id'] != @my_user_id %>
+
+            <div class = "hito">
+              <a href="/mypage/<%= follow['id'] %>"><img src="/user_icon/<%= follow['id'] %>_icon.jpg"></a>
+              <a href="/mypage/<%= follow['id'] %>"><p class="name"><%= follow['user_name'] %></p></a>
+
+              <% if @follow_is == 0 %>
+                <form action="/foll_system" method="post">
+                  <input type="hidden" name="from_url" value="<%= request.path %>">
+                  <input type="hidden" name="now_unfollower_id" value="<%= follow['id'] %>">
+                  <input class="follow_off" type="submit" value="フォローする" name="add_follow">
+                </form>
+              <% else %>
+              <form action="/foll_system" method="post">
+                <input type="hidden" name="from_url" value="<%= request.path %>">
+                <input type="hidden" name="now_follow_id" value="<%= follow['id'] %>">
+                <input class="follow_on" type="submit" value="フォロー中" name="delete_follow">
+              </form>
+              <% end %>
+            </div>
+
+          <% end %>
+        <% end %>
+
+
+
+      </div>
+
+      <div style="height: 100px; background-color: rgb(231, 236, 240); border-top: 20px solid white; margin-bottom: -20px;"></div>
+
+    </div>
+
+  </main>
